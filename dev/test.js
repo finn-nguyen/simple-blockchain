@@ -21,6 +21,5 @@ const currentBlockData = [
   }
 ]
 
-const nonce = bitcoin.proofOfWork(previousHashBlock, currentBlockData)
 
-console.log(bitcoin.hashBlock(previousHashBlock, currentBlockData, nonce))
+console.log(bitcoin)
