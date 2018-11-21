@@ -17,9 +17,31 @@ app.get('/blockchain', (req, res) => {
 })
 
 app.post('/transaction', (req, res) => {
-  const { amount, sender, recipient } = req.body
-  const blockIndex = bitcoin.createNewTransaction(amount, sender, recipient)
+  const { newTransaction } = req.body
+  const blockIndex = bitcoin.addTransactionToPendingTransaction(newTransaction)
   res.json({ note: `Transaction will be added in block ${blockIndex}`})
+})
+
+app.post('/transaction/broadcast', (req, res) => {
+  const { amount, sender, recipient } = req.body
+  const newTransaction = bitcoin.createNewTransaction(amount, sender, recipient)
+  bitcoin.addTransactionToPendingTransaction(newTransaction)
+
+  const requestPromises = []
+  bitcoin.networkNodes.forEach(networkNodeUrl => {
+    const requestOptions = {
+      uri: networkNodeUrl + '/transaction',
+      method: 'POST',
+      body: { newTransaction },
+      json: true
+    }
+    requestPromises.push(rq(requestOptions))
+  })
+
+  Promise.all(requestPromises)
+    .then(result => {
+      res.json({ note: 'Transaction created & broadcast successfully.' })
+    })
 })
 
 app.get('/mine', (req, res) => {
@@ -43,7 +65,7 @@ app.get('/mine', (req, res) => {
 // register a node and broadcast it the network
 app.post('/register-and-broadcast-node', (req, res) => {
   const newNodeUrl = req.body.newNodeUrl
-  if (bitcoin.networkNodes.indexOf(newNodeUrl) == -1) {
+  if (bitcoin.networkNodes.indexOf(newNodeUrl) == -1 && newNodeUrl != bitcoin.currentNodeUrl) {
     bitcoin.networkNodes.push(newNodeUrl)
   }
   const registerNodesPromises = []
