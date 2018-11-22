@@ -197,6 +197,31 @@ app.get('/consensus', (req, res) => {
     })
 })
 
+app.get('/block/:blockHash', (req, res) => {
+  const block = bitcoin.getBlock(req.params.blockHash)
+  res.json({
+    block
+  })
+})
+
+app.get('/transaction/:transactionId', (req, res) => {
+  const transaction = bitcoin.getTransaction(req.params.transactionId)
+  res.json({
+    ...transaction
+  })
+})
+
+app.get('/address/:address', (req, res) => {
+  const addressData = bitcoin.getAddressData(req.params.address)
+  return res.json({
+    addressData
+  })
+})
+
+app.get('/block-explorer', (req, res) => {
+  res.sendFile('./block-explorer/index.html', { root: __dirname })
+})
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`)
 })
